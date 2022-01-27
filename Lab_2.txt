@@ -1,0 +1,34 @@
+# First Program - Lab 2
+' Program: NWC0_02 
+' Author: Brad Illston 
+' Date: January 28, 2021 
+' Data Logger: CR310  
+' Station: NWC0 (METR 2613 Class) 
+' Description: This weather station will have a suite of instruments on 
+'   it and collect 5-minute data. 
+' 
+' Wiring Diagram 
+' 
+' 12V Battery 
+'   Red - BAT + 
+'   Black - BAT - 
+ 
+'Declare Public Variables 
+Public BATV 
+Units BATV=Volts 
+ 
+'Define Data Tables. 
+DataTable (NWC0_05A,1,-1)  
+  DataInterval (0,5,Min,0) 
+  Sample (1,BATV,FP2) 
+  FieldNames("BATV") 
+EndTable 
+ 
+'Main Program 
+BeginProg 
+ Scan (5,Sec,0,0) 
+  ' Battery Voltage  
+  Battery (BATV) 
+  CallTable NWC0_05A 
+ NextScan 
+EndProg 
