@@ -30,4 +30,4 @@ BeginProg
   Battery (BATV) 
   CallTable NWC7_05A 
  NextScan 
-EndProg 
+EndProg
