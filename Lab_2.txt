@@ -31,3 +31,5 @@ BeginProg
   CallTable NWC7_05A 
  NextScan 
 EndProg 
+
+`test
