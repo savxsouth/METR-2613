@@ -1,9 +1,8 @@
-# First Program - Lab 2
-' Program: NWC0_02 
-' Author: Brad Illston 
-' Date: January 28, 2021 
+' Program: NWC7_02 
+' Author: Nathan Bailey, Robby Frost, Miles Leonard, Noah Price, & Savannah Southward
+' Date: January 27, 2022 
 ' Data Logger: CR310  
-' Station: NWC0 (METR 2613 Class) 
+' Station: NWC7 (METR 2613 Class) 
 ' Description: This weather station will have a suite of instruments on 
 '   it and collect 5-minute data. 
 ' 
@@ -18,7 +17,7 @@ Public BATV
 Units BATV=Volts 
  
 'Define Data Tables. 
-DataTable (NWC0_05A,1,-1)  
+DataTable (NWC7_05A,1,-1)  
   DataInterval (0,5,Min,0) 
   Sample (1,BATV,FP2) 
   FieldNames("BATV") 
@@ -29,6 +28,6 @@ BeginProg
  Scan (5,Sec,0,0) 
   ' Battery Voltage  
   Battery (BATV) 
-  CallTable NWC0_05A 
+  CallTable NWC7_05A 
  NextScan 
 EndProg 
