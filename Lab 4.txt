@@ -1,0 +1,64 @@
+' Program: NWC7_05B
+' Author: Brooke Leonard 
+' Date: 10 February 2022
+ ' Data Logger: CR310 
+' Station: NWC7 (METR 2613 Class)
+' Description: This weather station will have a suite of instruments on ' it and collect 5-minute data. 
+' 
+' Wiring Diagram 
+' 
+' 12V Battery 
+' Red - BAT + 
+' Black - BAT - 
+' 
+' HygroVUE5 Temperature/RH Sensor 
+' Brown 12V/BATT + 
+' White C1 SDI=0 
+' Black G 
+' Clear G 
+' 
+' Apogee SP-110-SS Pyranometer 
+' White SE1 (1 H) 
+' Black SE2 (1 L) 
+' Clear G
+‘
+' Declare Public Variables 
+
+Public BATV 
+Units BATV=Volts
+ Public TEMPRH_Array(2) 
+Alias TEMPRH_Array(1) = TAIR 
+Alias TEMPRH_Array(2) = RELH 
+Public SRAD
+
+' Units 
+
+Units TAIR = DegC 
+Units RELH = Percent
+Units SRAD = W/m^2
+
+‘ Define Data Tables. 
+DataTable (NWC7_05B,1,-1) 
+DataInterval (0,5,Min,0) 
+Average (1,TAIR,FP2,False) 
+FieldNames("TAIR")
+Average (1,RELH,FP2,False) 
+FieldNames("RELH")
+Average (1,SRAD,FP2,False) 
+FieldNames("SRAD")
+Sample (1,BATV,FP2) 
+FieldNames("BATV") 
+EndTable 
+
+'Main Program 
+
+Begin Prog
+ Scan (5,Sec,0,0) 
+
+' Battery Voltage 
+Battery (BATV) 
+SDI12Recorder (TEMPRH_Array(),C1,0,"M!",1.0,0) 
+VoltDiff (SRAD,1,mV2500,1,True ,0,60,5,0)
+CallTable NWC7_05B 
+NextScan 
+EndProg
