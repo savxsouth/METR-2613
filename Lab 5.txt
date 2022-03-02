@@ -1,43 +1,55 @@
-' Program: NWC7_05C
+' Program: NWC7_05D
 ' Author: Nathan Bailey, Robby Frost, Miles Leonard, Noah Price, & Savannah Southward
-' Date: 10 February 2022
- ' Data Logger: CR310 
+' Date: 17 February 2022
+' Data Logger: CR310 
 ' Station: NWC7 (METR 2613 Class)
 ' Description: This weather station will have a suite of instruments on ' it and collect 5-minute data. 
 ' 
 ' Wiring Diagram 
 ' 
 ' 12V Battery 
-' Red - BAT + 
-' Black - BAT - 
+'   Red - BAT + 
+'   Black - BAT - 
 ' 
 ' HygroVUE5 Temperature/RH Sensor 
-' Brown 12V/BATT + 
-' White C1 SDI=0 
-' Black G 
-' Clear G 
-' 
+'   Brown 12V/BATT + 
+'   White C1 SDI=0 
+'   Black G 
+'   Clear G 
+'  
 ' Apogee SP-110-SS Pyranometer 
-' White SE1 (1 H) 
-' Black SE2 (1 L) 
-' Clear G
+'   White SE1 (1 H) 
+'   Black SE2 (1 L) 
+'   Clear G
 ‘
+' RM-Young Wind Monitor (Model 05103) 
+'   Red P_LL 
+'   Black G 
+'   Green SE6 
+'   Blue VX1 
+'   White G 
+'   Clear G 
+' 
 ' Declare Public Variables 
 
 Public BATV 
 Units BATV=Volts
- Public TEMPRH_Array(2) 
+Public TEMPRH_Array(2) 
 Alias TEMPRH_Array(1) = TAIR 
 Alias TEMPRH_Array(2) = RELH 
 Public SRAD
+Public WDSP 
+Public WDIR
 
 ' Units 
 
 Units TAIR = DegC 
 Units RELH = Percent
 Units SRAD = W/m^2
+Units WDSP = m/s 
+Units WDIR = Degrees
 
-' Define Data Tables. 
+‘ Define Data Tables. 
 DataTable (NWC7_05B,1,-1) 
 DataInterval (0,5,Min,0) 
 
@@ -49,6 +61,14 @@ FieldNames("RELH")
 
 Average (1,SRAD,FP2,False) 
 FieldNames("SRAD")
+
+Average (1,WDSP,FP2,False)
+FieldNames("WDSP") 
+Maximum (1,WDSP,FP2,False,False) 
+FieldNames("WMAX") 
+
+WindVector (1,WDSP,WDIR,FP2,False,0,0,3) 
+FieldNames("WDIR")
 
 Sample (1,BATV,FP2) 
 FieldNames("BATV") 
@@ -63,10 +83,14 @@ Begin Prog
 ' Battery Voltage 
 Battery (BATV) 
 
-' Solar Radiation
+‘ Solar Radiation
 SDI12Recorder (TEMPRH_Array(),C1,0,"M!",1.0,0) 
 VoltDiff (SRAD,1,mV2500,1,True ,0,60,5,0)
 
-CallTable NWC7_05C
+‘ Wind Monitor
+PulseCount (WDSP,1,P_LL,1,1,.0980,0) 
+BrHalf (WDIR,1,mV2500,6,Vx1,1,2500,False,20000,60,355,0)
+
+CallTable NWC7_05D
 NextScan 
 EndProg

@@ -1,15 +1,15 @@
-' Program: NWC7_05B
-' Author: Brooke Leonard 
+' Program: NWC7_05B'
+' Author: Nathan Bailey, Robby Frost, Miles Leonard, Noah Price, & Savannah Southward
 ' Date: 10 February 2022
- ' Data Logger: CR310 
+' Data Logger: CR310 
 ' Station: NWC7 (METR 2613 Class)
 ' Description: This weather station will have a suite of instruments on ' it and collect 5-minute data. 
 ' 
 ' Wiring Diagram 
 ' 
 ' 12V Battery 
-' Red - BAT + 
-' Black - BAT - 
+'   Red - BAT + 
+'   Black - BAT - 
 ' 
 ' HygroVUE5 Temperature/RH Sensor 
 ' Brown 12V/BATT + 
@@ -21,7 +21,7 @@
 
 Public BATV 
 Units BATV=Volts
- Public TEMPRH_Array(2) 
+Public TEMPRH_Array(2) 
 Alias TEMPRH_Array(1) = TAIR 
 Alias TEMPRH_Array(2) = RELH 
 
@@ -29,7 +29,9 @@ Alias TEMPRH_Array(2) = RELH
 
 Units TAIR = DegC 
 Units RELH = Percent
-‘ Define Data Tables. 
+
+' Define Data Tables. 
+
 DataTable (NWC7_05B,1,-1) 
 DataInterval (0,5,Min,0) 
 Average (1,TAIR,FP2,False) 
@@ -40,14 +42,17 @@ Sample (1,BATV,FP2)
 FieldNames("BATV") 
 EndTable 
 
-'Main Program 
+' Main Program 
 
 Begin Prog
- Scan (5,Sec,0,0) 
+Scan (5,Sec,0,0) 
 
 ' Battery Voltage 
 Battery (BATV) 
+
+' Solar Radiation
 SDI12Recorder (TEMPRH_Array(),C1,0,"M!",1.0,0) 
+
 CallTable NWC7_05B 
 NextScan 
 EndProg

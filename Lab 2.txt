@@ -1,4 +1,4 @@
-' Program: NWC7_02 
+' Program: NWC7_02A
 ' Author: Nathan Bailey, Robby Frost, Miles Leonard, Noah Price, & Savannah Southward
 ' Date: January 27, 2022 
 ' Data Logger: CR310  
@@ -12,22 +12,26 @@
 '   Red - BAT + 
 '   Black - BAT - 
  
-'Declare Public Variables 
+' Declare Public Variables 
 Public BATV 
 Units BATV=Volts 
  
-'Define Data Tables. 
+' Define Data Tables. 
+
 DataTable (NWC7_05A,1,-1)  
   DataInterval (0,5,Min,0) 
   Sample (1,BATV,FP2) 
   FieldNames("BATV") 
 EndTable 
  
-'Main Program 
+' Main Program 
+
 BeginProg 
  Scan (5,Sec,0,0) 
-  ' Battery Voltage  
+
+ ' Battery Voltage  
   Battery (BATV) 
   CallTable NWC7_05A 
  NextScan 
+
 EndProg
