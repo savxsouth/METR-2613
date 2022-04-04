@@ -50,7 +50,7 @@ from datetime import datetime, timedelta
 
 ## Choose the location of the data file
 os.chdir("/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/")
-rawdata = pd.read_csv("NWC0_05A.dat", skiprows = (0, 2, 3))
+rawdata = pd.read_csv("NWC0_05A_L1.dat", skiprows = (0, 2, 3))
 print(rawdata)
 
 ## Fill in missing data with NaNs
@@ -70,7 +70,7 @@ while current_date <= end_date:
     day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
                    & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
     
-## File path to direcotry the csv files need to be saved to
+## File path to directory the csv files need to be saved to
     filepath = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/csv/') 
     
 ## File name that fills in the proper datetimes for the data

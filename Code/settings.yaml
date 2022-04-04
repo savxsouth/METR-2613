@@ -1,0 +1,36 @@
+################################################# 
+
+# File: settings.yaml 
+
+# Version: 1.0 
+
+# Author: Savannah Southward (savannahjsouthward@ou.edu)
+# Description: 
+
+#   Settings for the METR 2613 labs. 
+
+# 
+
+# Version History: 
+
+#   1.0 - 3/31/2022 - Initial release 
+
+# 
+
+# Copyright (c) 2022 
+
+# Board of Regents, Univ. of Oklahoma 
+
+# All Rights Reserved. 
+
+# Proprietary. Confidential. 
+
+################################################# 
+
+ 
+data_file: "/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/NWC0_05A.dat" 
+data_filename: ./NWC0_05A.dat
+output_file_path: "/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/Reports/"
+output_csv_path: "/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/csv/"
+start_date: "2021-02-01 00:00" 
+end_date: "2021-02-03 23:55" 
