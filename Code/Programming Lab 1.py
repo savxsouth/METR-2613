@@ -15,7 +15,9 @@ Created on Thu Mar 24 12:15:05 2022
 # 
 # Version History: 
 #   1.0.0 - 3/24/2022 - Initial release 
-# 
+#
+#   1.5.0 - 4/04/2022 - Corrected for neglecting to add a blank data frame which
+#                       unknowingly goofed my output files oops...
 # Inputs: 
 #  * CSV formatted raw data file from CR300 series datalogger. 
 # 
@@ -46,29 +48,41 @@ import numpy as np
 from pathlib import Path  
 from datetime import datetime, timedelta
 
-# Read in data
-
-## Choose the location of the data file
+# Choose the location of the data file
 os.chdir("/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/")
-rawdata = pd.read_csv("NWC0_05A_L1.dat", skiprows = (0, 2, 3))
-print(rawdata)
-
-## Fill in missing data with NaNs
-rawdata = rawdata.fillna(-9999)
+data_file = "NWC0_05A_L1.dat"
 
 # Loop through each of the three days 
-
-## Parse data for the particular day 
-rawdata["TIMESTAMP"] = pd.to_datetime(rawdata['TIMESTAMP'])
 start_date = datetime(2021, 2, 1, 0, 0)
 end_date = datetime(2021, 2, 3, 23, 55)
 current_date = start_date
 
-## While Loop to cycle through the data for each day
+# Set up blank dataframe
+
+empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
+                        columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
+                                 'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
+
+# Read in raw data file
+rawdata = pd.read_csv(data_file, skiprows=[0,2,3], index_col='TIMESTAMP')
+rawdata.index = pd.to_datetime(rawdata.index)
+
+# Merge raw data into blank dataframe
+data = rawdata.combine_first(empty)
+data.reset_index(inplace = True)
+
+## Parse data for the particular day 
+data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
+data = data.drop('RECORD', axis=1)
+
+## Replace Missing data with -999
+data.fillna('-9999', inplace=True)
+
+# While Loop to cycle through the data for each day
 while current_date <= end_date:
     print(current_date)
-    day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
-                   & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
+    day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
+                   & (data["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
     
 ## File path to directory the csv files need to be saved to
     filepath = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/csv/') 

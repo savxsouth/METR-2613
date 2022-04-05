@@ -15,8 +15,11 @@ Created on Thu Mar 31 15:08:42 2022
 # 
 # Version History: 
 #   1.0.0 - 3/24/2022 - Initial release 
-
-#   2.0.0 - 3/31/2022 - Daily CSVs (filled with -9999s) and curated daily 
+#
+#   1.5.0 - 4/04/2022 - Corrected for neglecting to add a blank data frame which
+#                       unknowingly goofed my output files oops...
+#
+#   2.0.0 - 4/04/2022 - Daily CSVs (filled with -9999s) and curated daily 
 #                       statistics for Temperature, Wind Speed, and Total Rainfall
 # 
 # Inputs: 
@@ -52,29 +55,42 @@ import yaml
 from pathlib import Path  
 from datetime import datetime, timedelta
 
-# Read in data
-
-## Choose the location of the data file
+# Choose the location of the data file
 os.chdir("/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/")
-rawdata = pd.read_csv("NWC0_05A_L1.dat", skiprows = (0, 2, 3))
-print(rawdata)
+data_file = "NWC0_05A_L1.dat"
 
-## Fill in missing data with NaNs
-rawdata = rawdata.fillna(-9999)
-
-# Loop through each of the three days 
-
-## Parse data for the particular day 
-rawdata["TIMESTAMP"] = pd.to_datetime(rawdata['TIMESTAMP'])
+## Set variables for length of dataset 
 start_date = datetime(2021, 2, 1, 0, 0)
 end_date = datetime(2021, 2, 3, 23, 55)
 current_date = start_date
 
+# Read in data 
+
+## Set up blank dataframe
+empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
+                        columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
+                                 'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
+
+## Read in raw data file
+rawdata = pd.read_csv(data_file, skiprows=[0,2,3], index_col='TIMESTAMP')
+rawdata.index = pd.to_datetime(rawdata.index)
+
+## Merge raw data into blank dataframe
+data = rawdata.combine_first(empty)
+data.reset_index(inplace = True)
+
+# Parse data for the particular day 
+data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
+data = data.drop('RECORD', axis=1)
+
+## Replace Missing data with -999
+data.fillna('-9999', inplace=True)
+
 ## While Loop to cycle through the data for each day
 while current_date <= end_date:
     print(current_date)
-    day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
-                   & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
+    day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
+                   & (data["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
     
 ## File path to directory the csv files need to be saved to
     filepath = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/csv/') 
@@ -96,15 +112,27 @@ with open(settings_file, "r") as f:
     settings = yaml.safe_load(f)
 print(settings)
 
-rawdata = pd.read_csv(settings["data_file"], skiprows = (0, 2, 3))
-
-# Loop through each day (without hard coding!)
-
-## Parse data for the particular day 
-rawdata["TIMESTAMP"] = pd.to_datetime(rawdata["TIMESTAMP"])
 start_date = datetime.strptime(settings['start_date'], "%Y-%m-%d %H:%M")
 end_date = datetime.strptime(settings['end_date'], "%Y-%m-%d %H:%M")
 current_date = start_date
+
+empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
+                        columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
+                                 'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
+
+## Read in raw data file
+rawdata = pd.read_csv(settings["data_file"], skiprows = (0, 2, 3), index_col='TIMESTAMP')
+rawdata.index = pd.to_datetime(rawdata.index)
+
+## Merge raw data into blank dataframe
+data = rawdata.combine_first(empty)
+data.reset_index(inplace = True)
+
+# Parse data for the particular day 
+data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
+data = data.drop('RECORD', axis=1)
+
+# Loop through each day (without hard coding!)
 
 # Create the formatted Summary Report File within desired directory
 os.chdir(settings["output_file_path"])
@@ -122,11 +150,11 @@ while current_date <= end_date:
     filename = "NWC_{}{:02d}{:02d}.dat".format(current_date.year, current_date.month, current_date.day)
 
 ## Replace -9999s from Daily CSV section with NaNs
-    rawdata = rawdata.replace({pd.NA: np.nan})
+    data = data.replace({pd.NA: np.nan})
     
 ## Set up daily dataframe from 00z to 23:55z
-    day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
-                  & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
+    day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0))
+               & (data["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
 
 ## Number of lines missing from the data file
    ### Observations are taken at five minute intervals every hour for 24 hours.

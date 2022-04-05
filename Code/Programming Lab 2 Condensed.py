@@ -15,11 +15,14 @@ Created on Thu Mar 31 15:08:42 2022
 # 
 # Version History: 
 #   1.0.0 - 3/24/2022 - Initial release 
-
-#   2.0.0 - 3/31/2022 - Daily CSVs (filled with -9999s) and curated daily 
+#
+#   1.5.0 - 4/04/2022 - Corrected for neglecting to add a blank data frame which
+#                       unknowingly goofed my output files oops...
+#
+#   2.0.0 - 4/04/2022 - Daily CSVs (filled with -9999s) and curated daily 
 #                       statistics for Temperature, Wind Speed, and Total Rainfall
 #
-#   2.1.0 - 4/04/2022 - Condensed version for Daily CSVs and Summary Reports in
+#   2.5.0 - 4/04/2022 - Condensed version for Daily CSVs and Summary Reports in
 #                       the same while loop
 #
 # Inputs: 
@@ -56,49 +59,57 @@ import yaml
 from pathlib import Path  
 from datetime import datetime, timedelta
 
-# Read in data
-
 ## Choose the location of the data file
 settings_file = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Code/settings.yaml') 
 with open(settings_file, "r") as f:
     settings = yaml.safe_load(f)
 print(settings)
 
-rawdata = pd.read_csv(settings["data_file"], skiprows = (0, 2, 3))
-
-# Loop through each day (without hard coding!)
-
-## Parse data for the particular day 
-rawdata["TIMESTAMP"] = pd.to_datetime(rawdata["TIMESTAMP"])
 start_date = datetime.strptime(settings['start_date'], "%Y-%m-%d %H:%M")
 end_date = datetime.strptime(settings['end_date'], "%Y-%m-%d %H:%M")
 current_date = start_date
 
-# Create the formatted Summary Report File within desired directory
+empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
+                        columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
+                                 'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
 
+## Read in raw data file
+rawdata = pd.read_csv(settings["data_file"], skiprows = (0, 2, 3), index_col='TIMESTAMP')
+rawdata.index = pd.to_datetime(rawdata.index)
+
+## Merge raw data into blank dataframe
+data = rawdata.combine_first(empty)
+data.reset_index(inplace = True)
+
+# Parse data for the particular day 
+data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
+data = data.drop('RECORD', axis=1)
+
+# Loop through each day (without hard coding!)
+
+# Create the formatted Summary Report File within desired directory
 os.chdir(settings["output_file_path"])
 
-sumdate_start = pd.to_datetime(settings['start_date']).strftime('%Y%m%d')
-sumdate_end = pd.to_datetime(settings['end_date']).strftime('%Y%m%d')
+sumdate_start =  pd.to_datetime(settings['start_date']).strftime('%Y%m%d')
+sumdate_end =  pd.to_datetime(settings['end_date']).strftime('%Y%m%d')
 
 summary = "NWC0_REPORT_" + sumdate_start + "_" + sumdate_end   
 file = open(summary+'.txt', 'w')
-file.write("Statistics Report \n" "Input file: " + settings["data_filename"]
-           + "\n" "Output Data: ")
+file.write("Statistics Report \n" "Input file: " + settings["data_filename"] 
+               + "\n" "Output Data: ")
 
 # Create the Daily CSVs within desired directory
    
 ## While Loop to cycle through the data for each day
 while current_date <= end_date:
     
-## Fill in missing data with NaNs
-    rawdata = rawdata.fillna("-9999")
+## Replace Missing data with -999
+    data.fillna('-9999', inplace=True)
 
 ## Set up daily dataframe from 00z to 23:55z
-    day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
-                  & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
-
-
+    day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
+                   & (data["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
+  
 ## File path to directory the csv files need to be saved to
     filepath = settings["output_csv_path"]
     
