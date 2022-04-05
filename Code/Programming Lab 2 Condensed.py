@@ -59,34 +59,40 @@ import yaml
 from pathlib import Path  
 from datetime import datetime, timedelta
 
-## Choose the location of the data file
+# Choose the location of the data file
 settings_file = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Code/settings.yaml') 
 with open(settings_file, "r") as f:
     settings = yaml.safe_load(f)
 print(settings)
 
+## Denote start and end dates
 start_date = datetime.strptime(settings['start_date'], "%Y-%m-%d %H:%M")
 end_date = datetime.strptime(settings['end_date'], "%Y-%m-%d %H:%M")
 current_date = start_date
 
-## Read in raw data file
-rawdata = pd.read_csv(settings["data_file"], skiprows=[0,2,3])
-#rawdata.index = pd.to_datetime(rawdata.index)
-
-## Create a blank dataframe
+## Set up blank dataframe
 empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
                         columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
                                  'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
+
+## Read in raw data and index columns 
+rawdata = pd.read_csv(settings["data_file"], skiprows=[0,2,3], index_col='TIMESTAMP')
+rawdata.index = pd.to_datetime(rawdata.index)
 
 ## Merge raw data into blank dataframe
 data = rawdata.combine_first(empty)
 data.reset_index(inplace = True)
 
-# Parse data for the particular day 
+## Parse data for the particular day 
 data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
 data = data.drop('RECORD', axis=1)
 
-# Loop through each day (without hard coding!)
+## Replace Missing data with -999
+data.fillna('-9999', inplace=True)
+
+## Raw data file without missing data filled 
+raw_datafile = pd.read_csv(settings["data_file"], skiprows = [0, 2, 3])
+raw_datafile["TIMESTAMP"] = pd.to_datetime(raw_datafile["TIMESTAMP"])
 
 # Create the formatted Summary Report File within desired directory
 os.chdir(settings["output_file_path"])
@@ -98,38 +104,33 @@ summary = "NWC0_REPORT_" + sumdate_start + "_" + sumdate_end
 file = open(summary+'.txt', 'w')
 file.write("Statistics Report \n" "Input file: " + settings["data_filename"] 
                + "\n" "Output Data: ")
-
-# Create the Daily CSVs within desired directory
    
-## While Loop to cycle through the data for each day
+# While Loop to cycle through the data for each day
 while current_date <= end_date:
-    
-## Replace Missing data with -999
-    data.fillna('-9999')
-
-## Set up daily dataframe from 00z to 23:55z
+    print(current_date)
     day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
                    & (data["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
-  
+
+# Create the Daily CSVs within desired directory
+    
 ## File path to directory the csv files need to be saved to
-    filepath = settings["output_csv_path"]
+    filepath = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/csv/') 
     
 ## File name that fills in the proper datetimes for the data
     filename = "NWC_{}{:02d}{:02d}.dat".format(current_date.year, current_date.month, current_date.day)
+    print(filename)
     
 ## CSV Outfile
-    outfile = os.path.join(filepath,filename)
-    day.to_csv(outfile)
- 
-###############################################################
+    day.to_csv(filepath/filename)
+    
+############################################################### 
 
 # Summary Reports
 
-## Replace -9999s from Daily CSV section with NaNs to mitigate calculation error 
-    #rawdata.replace("-9999", np.NaN)
+## Set up daily dataframe from 00z to 23:55z using the raw data file
+    day = raw_datafile[(raw_datafile["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0))
+               & (raw_datafile["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
 
-    #day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
-     #             & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
 ## Number of lines missing from the data file
    ### Observations are taken at five minute intervals every hour for 24 hours.
     max_obs = ((60/5)*24)
@@ -154,6 +155,6 @@ while current_date <= end_date:
                "\t \t Wind Speed (m/s)   :    Max: {:7}    Min: {:7}    Avg: {:7} \n".format(max_wind, min_wind, avg_wind) +
                "\t \t Precipitation (mm) :   {:7}".format(total_rf))
     
-    current_date += timedelta(days = 1)
+    current_date += timedelta(days = 1)   
     
 file.close()
