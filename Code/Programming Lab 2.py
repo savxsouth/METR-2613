@@ -51,7 +51,6 @@ Created on Thu Mar 31 15:08:42 2022
 import os 
 import pandas as pd
 import numpy as np
-import yaml
 from pathlib import Path  
 from datetime import datetime, timedelta
 
@@ -59,34 +58,33 @@ from datetime import datetime, timedelta
 os.chdir("/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/")
 data_file = "NWC0_05A_L1.dat"
 
-## Set variables for length of dataset 
+# Loop through each of the three days 
 start_date = datetime(2021, 2, 1, 0, 0)
 end_date = datetime(2021, 2, 3, 23, 55)
 current_date = start_date
 
-# Read in data 
+# Set up blank dataframe
 
-## Set up blank dataframe
 empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
                         columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
                                  'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
 
-## Read in raw data file
+# Read in raw data file
 rawdata = pd.read_csv(data_file, skiprows=[0,2,3], index_col='TIMESTAMP')
 rawdata.index = pd.to_datetime(rawdata.index)
 
-## Merge raw data into blank dataframe
+# Merge raw data into blank dataframe
 data = rawdata.combine_first(empty)
 data.reset_index(inplace = True)
 
-# Parse data for the particular day 
+## Parse data for the particular day 
 data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
 data = data.drop('RECORD', axis=1)
 
 ## Replace Missing data with -999
 data.fillna('-9999', inplace=True)
 
-## While Loop to cycle through the data for each day
+# While Loop to cycle through the data for each day
 while current_date <= end_date:
     print(current_date)
     day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
@@ -102,11 +100,13 @@ while current_date <= end_date:
 ## CSV Outfile
     day.to_csv(filepath/filename)
 
-    current_date += timedelta(days = 1)    
-        
-###############################################################    
- 
-## Choose the location of the yaml file to read in data
+    current_date += timedelta(days = 1)
+    
+############################################################### 
+
+import yaml
+
+## Choose the location of the data file
 settings_file = Path('/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Code/settings.yaml') 
 with open(settings_file, "r") as f:
     settings = yaml.safe_load(f)
@@ -116,25 +116,9 @@ start_date = datetime.strptime(settings['start_date'], "%Y-%m-%d %H:%M")
 end_date = datetime.strptime(settings['end_date'], "%Y-%m-%d %H:%M")
 current_date = start_date
 
-empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
-                        columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
-                                 'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
+raw_datafile = pd.read_csv(settings["data_file"], skiprows = [0, 2, 3])
+raw_datafile["TIMESTAMP"] = pd.to_datetime(raw_datafile["TIMESTAMP"])
 
-## Read in raw data file
-rawdata = pd.read_csv(settings["data_file"], skiprows = (0, 2, 3), index_col='TIMESTAMP')
-rawdata.index = pd.to_datetime(rawdata.index)
-
-## Merge raw data into blank dataframe
-data = rawdata.combine_first(empty)
-data.reset_index(inplace = True)
-
-# Parse data for the particular day 
-data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
-data = data.drop('RECORD', axis=1)
-
-# Loop through each day (without hard coding!)
-
-# Create the formatted Summary Report File within desired directory
 os.chdir(settings["output_file_path"])
 
 sumdate_start =  pd.to_datetime(settings['start_date']).strftime('%Y%m%d')
@@ -145,16 +129,12 @@ file = open(summary+'.txt', 'w')
 file.write("Statistics Report \n" "Input file: " + settings["data_filename"] 
                + "\n" "Output Data: ")
 
-# Daily statistics 
 while current_date <= end_date:
     filename = "NWC_{}{:02d}{:02d}.dat".format(current_date.year, current_date.month, current_date.day)
 
-## Replace -9999s from Daily CSV section with NaNs
-    data = data.replace({pd.NA: np.nan})
-    
 ## Set up daily dataframe from 00z to 23:55z
-    day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0))
-               & (data["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
+    day = raw_datafile[(raw_datafile["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0))
+               & (raw_datafile["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
 
 ## Number of lines missing from the data file
    ### Observations are taken at five minute intervals every hour for 24 hours.

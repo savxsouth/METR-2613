@@ -34,11 +34,11 @@ Created on Thu Mar 31 15:08:42 2022
 #  * Maximum, Minimum, and Average Summary Reports. 
 #  
 # To Do: 
-#  * Finalize and push changes to GitHub
+#  * FIX THIS
 #  * Ask if this is even what I am supposed to be doing
 #  
 # Bugs: 
-#  * None - That I know of...
+#  * This whole thing is a mess
 # 
 # Notes: 
 #   * All Python libraries are the latest versions as of release date. 
@@ -69,13 +69,14 @@ start_date = datetime.strptime(settings['start_date'], "%Y-%m-%d %H:%M")
 end_date = datetime.strptime(settings['end_date'], "%Y-%m-%d %H:%M")
 current_date = start_date
 
+## Read in raw data file
+rawdata = pd.read_csv(settings["data_file"], skiprows=[0,2,3])
+#rawdata.index = pd.to_datetime(rawdata.index)
+
+## Create a blank dataframe
 empty = pd.DataFrame(index=pd.date_range(start_date, end_date, freq='5min'),
                         columns=['RECORD','TAIR','RELH','SRAD','WSPD','WMAX',
                                  'WDIR','RAIN','BATV']).rename_axis('TIMESTAMP')
-
-## Read in raw data file
-rawdata = pd.read_csv(settings["data_file"], skiprows = (0, 2, 3), index_col='TIMESTAMP')
-rawdata.index = pd.to_datetime(rawdata.index)
 
 ## Merge raw data into blank dataframe
 data = rawdata.combine_first(empty)
@@ -104,7 +105,7 @@ file.write("Statistics Report \n" "Input file: " + settings["data_filename"]
 while current_date <= end_date:
     
 ## Replace Missing data with -999
-    data.fillna('-9999', inplace=True)
+    data.fillna('-9999')
 
 ## Set up daily dataframe from 00z to 23:55z
     day = data[(data["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
@@ -125,8 +126,10 @@ while current_date <= end_date:
 # Summary Reports
 
 ## Replace -9999s from Daily CSV section with NaNs to mitigate calculation error 
-    day = day.replace("-9999", np.NaN)
+    #rawdata.replace("-9999", np.NaN)
 
+    #day = rawdata[(rawdata["TIMESTAMP"] >= datetime(current_date.year, current_date.month, current_date.day, 0, 0)) 
+     #             & (rawdata["TIMESTAMP"] <= datetime(current_date.year, current_date.month, current_date.day, 23, 55))]
 ## Number of lines missing from the data file
    ### Observations are taken at five minute intervals every hour for 24 hours.
     max_obs = ((60/5)*24)
