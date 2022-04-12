@@ -1,10 +1,10 @@
-Statistics Report 
+Statistics Report (QA) 
 Input file: ./NWC0_05A.dat
 Output Data: 
  	 File: NWC_20210201.dat
 	 	 Missing Observations: 15.0
-	 	 Air Temperature (C):    Max:    98.12    Min:    -0.83    Avg:     6.30 
-	 	 Wind Speed (m/s)   :    Max:   130.06    Min:     0.00    Avg:     1.03 
+	 	 Air Temperature (C):    Max:    17.78    Min:    -0.83    Avg:     5.96 
+	 	 Wind Speed (m/s)   :    Max:     0.38    Min:     0.00    Avg:     0.10 
 	 	 Precipitation (mm) :       0.00
  	 File: NWC_20210202.dat
 	 	 Missing Observations: 4.0
@@ -13,6 +13,6 @@ Output Data:
 	 	 Precipitation (mm) :       1.78
  	 File: NWC_20210203.dat
 	 	 Missing Observations: 11.0
-	 	 Air Temperature (C):    Max:    17.93    Min:   -65.11    Avg:     8.96 
+	 	 Air Temperature (C):    Max:    17.93    Min:     3.23    Avg:     9.23 
 	 	 Wind Speed (m/s)   :    Max:     1.34    Min:     0.20    Avg:     0.55 
 	 	 Precipitation (mm) :       0.00

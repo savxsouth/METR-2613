@@ -34,3 +34,29 @@ output_file_path: "/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/Re
 output_csv_path: "/Users/savannahsouthward/opt/anaconda3/envs/METR-2613/Data/csv/"
 start_date: "2021-02-01 00:00" 
 end_date: "2021-02-03 23:55" 
+
+variable:
+    TAIR:
+        QA:
+            high_limit: 60
+            low_limit: -40
+
+    RELH:
+        QA:
+           high_limit: 100
+           low_limit: 0
+            
+    SRAD:
+        QA:
+           high_limit: 1500
+           low_limit: -5
+            
+    WSPD:
+        QA:
+           high_limit: 50
+           low_limit: 0
+
+    WMAX:
+        QA:
+           high_limit: 50
+           low_limit: 0
