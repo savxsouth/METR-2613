@@ -60,3 +60,7 @@ variable:
         QA:
            high_limit: 50
            low_limit: 0
+    CHIL:
+        QA: 
+           high_limit: 5
+           low_limit: -75
