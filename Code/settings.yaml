@@ -64,3 +64,6 @@ variable:
         QA: 
            high_limit: 5
            low_limit: -75
+           
+wsg_fig: 'wind_speed_graphs.png'
+         
