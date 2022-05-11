@@ -64,6 +64,8 @@ variable:
         QA: 
            high_limit: 5
            low_limit: -75
+
+    wind_histogram_bins: [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3]
            
 wsg_fig: 'wind_speed_graphs.png'
-         
+
